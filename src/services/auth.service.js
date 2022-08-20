@@ -1,9 +1,13 @@
 const httpStatus = require('http-status');
+const otpGenerator = require('otp-generator');
+const moment = require('moment');
+const config = require('../config/config');
 const tokenService = require('./token.service');
 const userService = require('./user.service');
 const Token = require('../models/token.model');
 const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
+const logger = require('../config/logger');
 
 /**
  * Login with username and password
@@ -16,6 +20,46 @@ const loginUserWithEmailAndPassword = async (email, password) => {
   if (!user || !(await user.isPasswordMatch(password))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
+  return user;
+};
+
+/**
+ * Send OTP
+ * @param {string} mobile
+ * @returns {Promise}
+ */
+const sendOtp = async (mobile) => {
+  let user = await userService.getUserByMobile(mobile);
+  if (!user) {
+    // throw new ApiError(httpStatus.UNAUTHORIZED, 'User with this mobile number does not exist!');
+    user = await userService.createUser({ mobile });
+  }
+  const otp = otpGenerator.generate(6, {
+    digits: true,
+    lowerCaseAlphabets: false,
+    upperCaseAlphabets: false,
+    specialChars: false,
+  });
+  const otpExpires = moment().add(config.otp.verifyOtpExpirationMinutes, 'minutes');
+
+  await tokenService.saveToken(otp, user.id, otpExpires, tokenTypes.VERIFY_OTP);
+  logger.info(`OTP: ${otp}`);
+  // We will send OTP here
+};
+
+/**
+ * Verify OTP
+ * @param {number} mobile
+ * @param {number} otp
+ * @returns {Promise}
+ */
+const verifyOtp = async (mobile, otp) => {
+  const user = await userService.getUserByMobile(mobile);
+  const tokenDoc = await Token.findOne({ token: otp, type: tokenTypes.VERIFY_OTP, user: user.id, blacklisted: false });
+  if (!tokenDoc) {
+    throw new Error('Incorrect OTP!');
+  }
+  await Token.deleteMany({ user: user.id, type: tokenTypes.VERIFY_OTP });
   return user;
 };
 
@@ -92,6 +136,8 @@ const verifyEmail = async (verifyEmailToken) => {
 
 module.exports = {
   loginUserWithEmailAndPassword,
+  sendOtp,
+  verifyOtp,
   logout,
   refreshAuth,
   resetPassword,

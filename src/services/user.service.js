@@ -8,7 +8,7 @@ const ApiError = require('../utils/ApiError');
  * @returns {Promise<User>}
  */
 const createUser = async (userBody) => {
-  if (await User.isEmailTaken(userBody.email)) {
+  if (userBody.email && (await User.isEmailTaken(userBody.email))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   return User.create(userBody);
@@ -44,6 +44,15 @@ const getUserById = async (id) => {
  */
 const getUserByEmail = async (email) => {
   return User.findOne({ email });
+};
+
+/**
+ * Get user by mobile
+ * @param {string} mobile
+ * @returns {Promise<User>}
+ */
+const getUserByMobile = async (mobile) => {
+  return User.findOne({ mobile });
 };
 
 /**
@@ -84,6 +93,7 @@ module.exports = {
   queryUsers,
   getUserById,
   getUserByEmail,
+  getUserByMobile,
   updateUserById,
   deleteUserById,
 };

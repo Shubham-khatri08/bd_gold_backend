@@ -10,8 +10,9 @@ const register = catchAsync(async (req, res) => {
 
 const sendOtp = catchAsync(async (req, res) => {
   const { mobile } = req.body;
-  await authService.sendOtp(mobile);
-  res.status(httpStatus.NO_CONTENT).send();
+  const otp = await authService.sendOtp(mobile);
+  // res.status(httpStatus.NO_CONTENT).send({ otp });
+  res.send({ otp });
 });
 
 const verifyOtp = catchAsync(async (req, res) => {

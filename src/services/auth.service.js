@@ -44,6 +44,7 @@ const sendOtp = async (mobile) => {
 
   await tokenService.saveToken(otp, user.id, otpExpires, tokenTypes.VERIFY_OTP);
   logger.info(`OTP: ${otp}`);
+  return otp;
   // We will send OTP here
 };
 

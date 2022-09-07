@@ -19,7 +19,7 @@ const verifyOtp = catchAsync(async (req, res) => {
   const { mobile, otp } = req.body;
   const user = await authService.verifyOtp(mobile, otp);
   const tokens = await tokenService.generateAuthTokens(user);
-  res.send({ user, tokens });
+  res.send({ user, tokens, newUser: user.firstname === undefined });
 });
 
 const login = catchAsync(async (req, res) => {

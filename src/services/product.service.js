@@ -72,14 +72,17 @@ const updateProductById = async (req) => {
 
   if (imageFiles.length > 0) {
     const styleNo = updateBody.styleNo ? updateBody.styleNo : product.styleNo;
-    const images = [];
+    const newImages = [];
     // eslint-disable-next-line no-plusplus
     for (let index = 0; index < req.files.length; index++) {
       const imageName = `prodImg-${styleNo.toLowerCase()}-${Date.now()}`;
       // eslint-disable-next-line no-await-in-loop
       const imageData = await s3Upload(req.files[index], imageName);
-      images.push(imageData);
+      newImages.push(imageData);
     }
+    const oldImages = product.images;
+    const images = oldImages.concat(newImages);
+    Object.assign(product, { images });
   }
 
   Object.assign(product, updateBody);
@@ -106,10 +109,35 @@ const deleteProductById = async (productId) => {
   return product;
 };
 
+/**
+ * Delete product by id
+ * @param {ObjectId} productId
+ * @returns {Promise<Product>}
+ */
+const deleteProductImageById = async (req) => {
+  const productId = req.params.id;
+
+  const product = await getProductById(productId);
+  if (!product) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Product not found');
+  }
+
+  deleteFromS3Bucket(req.body.image.imageKey);
+
+  const oldImages = product.images;
+  const images = oldImages.filter((item) => item._id.toString() !== req.body.image._id);
+
+  Object.assign(product, { images });
+
+  await product.save();
+  return product;
+};
+
 module.exports = {
   createProduct,
   queryProducts,
   getProductById,
   updateProductById,
   deleteProductById,
+  deleteProductImageById,
 };

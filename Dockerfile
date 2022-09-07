@@ -1,15 +1,13 @@
-FROM node:alpine
+FROM node:lts-alpine
 
-RUN mkdir -p /usr/src/node-app && chown -R node:node /usr/src/node-app
+WORKDIR /app
 
-WORKDIR /usr/src/node-app
+COPY . .
 
-COPY package.json yarn.lock ./
+RUN npm install
 
 USER node
 
-RUN yarn install --pure-lockfile
-
-COPY --chown=node:node . .
+CMD [ "npm", "start" ]
 
 EXPOSE 3000

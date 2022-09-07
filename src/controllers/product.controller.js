@@ -25,13 +25,18 @@ const getProduct = catchAsync(async (req, res) => {
 });
 
 const updateProduct = catchAsync(async (req, res) => {
-  const user = await productService.updateProductById(req);
-  res.send(user);
+  const product = await productService.updateProductById(req);
+  res.send(product);
 });
 
 const deleteProduct = catchAsync(async (req, res) => {
   await productService.deleteProductById(req.params.id);
   res.status(httpStatus.NO_CONTENT).send();
+});
+
+const deleteProductImage = catchAsync(async (req, res) => {
+  const product = await productService.deleteProductImageById(req);
+  res.send(product);
 });
 
 module.exports = {
@@ -40,4 +45,5 @@ module.exports = {
   getProduct,
   updateProduct,
   deleteProduct,
+  deleteProductImage,
 };

@@ -22,6 +22,10 @@ router
   .get(validate(productValidation.getProducts), productController.getProducts);
 
 router
+  .route('/image/:id')
+  .delete(auth('manageProduct'), validate(productValidation.deleteProductImage), productController.deleteProductImage);
+
+router
   .route('/:id')
   .get(validate(productValidation.getProduct), productController.getProduct)
   .patch(

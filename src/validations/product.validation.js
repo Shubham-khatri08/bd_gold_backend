@@ -31,6 +31,7 @@ const getProducts = {
     populate: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer(),
+    category: Joi.custom(objectId),
   }),
 };
 
